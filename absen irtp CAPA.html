@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Absen Pemeriksaan Sarana IRTP - Dinkes Minahasa Tenggara</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #ffdddd;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: white;
+      background-color: #cc0000;
+      padding: 10px;
+      text-align: center;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #cc0000;
+      color: white;
+    }
+    .form-group {
+      margin: 10px 0;
+    }
+    label {
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 6px;
+      margin-top: 4px;
+      box-sizing: border-box;
+    }
+    .btn {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #cc0000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .btn:hover {
+      background-color: #a30000;
+    }
+    #datetime {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    #qrcode {
+      margin: 20px auto;
+      width: fit-content;
+      text-align: center;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+
+  <h1>Absen Pemeriksaan Sarana IRTP & Pendampingan CAPA<br>Dinas Kesehatan Minahasa Tenggara</h1>
+
+  <div id="datetime"></div>
+
+  <form id="absenForm">
+    <div class="form-group">
+      <label>Nama:</label>
+      <input type="text" id="nama" required>
+    </div>
+    <div class="form-group">
+      <label>NIP:</label>
+      <input type="text" id="nip" required>
+    </div>
+    <div class="form-group">
+      <label>Jabatan:</label>
+      <input type="text" id="jabatan" required>
+    </div>
+    <div class="form-group">
+      <label>Instansi:</label>
+      <input type="text" id="instansi" required>
+    </div>
+    <button type="submit" class="btn">Tambah ke Absen</button>
+  </form>
+
+  <div id="qrcode"></div>
+
+  <button onclick="exportTableToExcel('absenTable', 'absen_irtp_capa')" class="btn">Export ke Excel</button>
+
+  <table id="absenTable">
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Hari/Tanggal</th>
+        <th>Jam</th>
+        <th>Nama</th>
+        <th>NIP</th>
+        <th>Jabatan</th>
+        <th>Instansi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const dateString = now.toLocaleDateString('id-ID', options);
+      const timeString = now.toLocaleTimeString('id-ID');
+      document.getElementById("datetime").innerText = `Hari/Tanggal: ${dateString} | Jam: ${timeString}`;
+      return { date: dateString, time: timeString };
+    }
+
+    setInterval(updateDateTime, 1000);
+
+    let count = 1;
+    document.getElementById("absenForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const { date, time } = updateDateTime();
+      const nama = document.getElementById("nama").value;
+      const nip = document.getElementById("nip").value;
+      const jabatan = document.getElementById("jabatan").value;
+      const instansi = document.getElementById("instansi").value;
+
+      const table = document.querySelector("#absenTable tbody");
+      const row = table.insertRow();
+      row.innerHTML = `
+        <td>${count++}</td>
+        <td>${date}</td>
+        <td>${time}</td>
+        <td>${nama}</td>
+        <td>${nip}</td>
+        <td>${jabatan}</td>
+        <td>${instansi}</td>
+      `;
+
+      new QRious({
+        element: document.getElementById("qrcode"),
+        value: `Nama: ${nama}\nNIP: ${nip}\nJabatan: ${jabatan}\nInstansi: ${instansi}\nTanggal: ${date}\nJam: ${time}`,
+        size: 200,
+        background: '#ffffff',
+        foreground: '#000000'
+      });
+
+      this.reset();
+    });
+
+    function exportTableToExcel(tableID, filename = '') {
+      const tableSelect = document.getElementById(tableID);
+      const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+      const downloadLink = document.createElement("a");
+      document.body.appendChild(downloadLink);
+      downloadLink.href = 'data:application/vnd.ms-excel,' + tableHTML;
+      downloadLink.download = filename + '.xls';
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    }
+  </script>
+
+</body>
+</html>
